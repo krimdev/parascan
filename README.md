@@ -91,12 +91,17 @@ tells you *how much is actually happening on-chain*.
 repository documents the architecture, methodology and results in detail so
 every number can be understood and challenged.
 
-**Does it work on any contract?** Any contract with verified source code
-(Sourcify or MonadScan/Etherscan). Unverified bytecode cannot be analyzed at
-source level — by anyone.
+**My contract barely has users — does the score matter?** Parallelism is
+about all the transactions in a block, yours and everyone else's. A hotspot
+is invisible while your app is small and shows up the day it succeeds — 500
+mints in one second running one by one. ParaScan measures rush-hour behavior
+before rush hour happens.
 
 **Is a bad score always a bug?** No. Some patterns (like sequential NFT ids)
 are product decisions. ParaScan makes the cost visible; the tradeoff is yours.
+
+**→ More: [FAQ.md](FAQ.md)** — Uniswap at 16/100, the ~x4 measurement, what
+happens to pasted code, what ParaScan misses, and more.
 
 ## Links
 
