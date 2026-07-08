@@ -32,6 +32,11 @@ lastTransferBlock = block.number; // every tx writes the same slot
 Each line is a single toll booth on a 16-lane highway. The code compiles,
 works, and nothing warns you — it just quietly runs on one lane.
 
+Ecosystem dev guides already say it plainly: *"profile storage access to
+reduce shared-state writes and maximize the gains from parallelism"*
+([A Developer's Guide to Monad, QuickNode](https://blog.quicknode.com/monad-developer-guide/)).
+The advice existed. The profiler didn't. **Now it does.**
+
 ## What ParaScan does
 
 Paste a **mainnet address** or **raw Solidity** at [parascan.dev](https://parascan.dev) and get:
