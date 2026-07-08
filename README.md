@@ -103,5 +103,4 @@ are product decisions. ParaScan makes the cost visible; the tradeoff is yours.
 - 🌐 **App:** [parascan.dev](https://parascan.dev)
 - 📖 Architecture: [ARCHITECTURE.md](ARCHITECTURE.md)
 - 📐 Methodology & limits: [METHODOLOGY.md](METHODOLOGY.md)
-- 🏆 Leaderboard: [LEADERBOARD.md](LEADERBOARD.md)
 - 📚 Monad docs on parallel execution: [docs.monad.xyz](https://docs.monad.xyz/monad-arch/execution/parallel-execution)
