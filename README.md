@@ -14,8 +14,11 @@ The parallelism profiler for Solidity contracts on [Monad](https://www.monad.xyz
 
 ## The problem
 
-Monad executes independent transactions **in parallel** on 16-core validators —
-that's where the 10,000 TPS comes from. But when two transactions touch the
+Monad executes independent transactions **in parallel** — validators run on
+16+ CPU cores by [spec](https://docs.monad.xyz/monad-arch/hardware-requirements),
+and transactions without common dependencies are
+[scheduled on separate cores](https://docs.monad.xyz/monad-arch/execution/parallel-execution).
+That's where the 10,000 TPS comes from. But when two transactions touch the
 same storage slot, they must re-execute **one by one**.
 
 Fifteen years of Ethereum habits produce code that does exactly that:
