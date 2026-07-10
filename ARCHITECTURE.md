@@ -81,6 +81,11 @@ a before/after template instantiated with the contract's real variable and
 function names. Optionally, the actually-scanned source is sent to an LLM
 which returns a refactor of the developer's own code.
 
+**Fix simulator.** For self-contained sources, the report opens an editable
+copy of the contract; re-scoring recompiles the edited code and shows the
+before → after score with the delta and hotspot-count change, so a proposed
+refactor's benefit is proven, not asserted.
+
 ## Engine 2 — live measurement
 
 Monad's public RPC exposes `debug_traceBlockByNumber`. For each transaction of
@@ -101,9 +106,10 @@ dependency DAG gives, per block:
 - the most contended contracts and slots, aggregated across blocks.
 
 A background collector runs this sampling every 30s, independent of visitors,
-appending each data point to dated JSON in a persistent volume — so the
-contention history accumulates continuously and drives a live time-series
-chart.
+appending each data point (including the top-5 contended contracts) to dated
+JSON in a persistent volume — so the contention history accumulates
+continuously. It drives a live time-series chart and a **24h leaderboard** of
+the worst contention offenders on the chain, rebuilt from that history.
 
 ## Naming the slots — Engine 1 × Engine 2
 

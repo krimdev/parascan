@@ -47,8 +47,10 @@ Paste a **mainnet address** or **raw Solidity** at [parascan.dev](https://parasc
 | 🔥 **Hotspots** | the exact variable, its storage slot, who writes/reads it, severity |
 | 🛠 **The fix** | before/after refactor using *your* variable names, per detected pattern |
 | ✨ **AI fix** | one click: an LLM rewrites your actual code to remove the contention |
+| 🔧 **Fix simulator** | edit the contract and re-score in place to prove the gain — *53 → 94* |
 | 📡 **Live network monitor** | contention sampled from mainnet every 30s, a real-time chart, the hottest contracts right now |
 | 🏷 **Named live contention** | for a verified contract, the storage slots actually colliding on-chain mapped back to their **variable names** (`s_orderIdCounter`, `balances[0x…]`, `positions[id].amount`) |
+| 🏆 **Contention leaderboard** | the worst contention offenders on Monad over the last 24h, accumulated continuously — historical data no one else has |
 
 ## Real mainnet results
 
