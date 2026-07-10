@@ -11,26 +11,55 @@ transactions re-execute serially, in block order. This is the single rule
 everything below derives from.
 (Reference: [Monad docs — parallel execution](https://docs.monad.xyz/monad-arch/execution/parallel-execution).)
 
-## Parallelizability score (static)
+## Parallelizability score (static, v0.3 — probabilistic)
 
-Each state-changing, externally callable function starts at **100** and loses
-points per **distinct** contended slot it touches:
+The score **is** a probability: `score = 100 × P(two concurrent calls do
+NOT conflict)`. That is the quantity Monad's scheduler actually pays for —
+no abstract point system in between.
 
-| Access | Penalty | Severity |
+For every pair of state-changing functions, each storage variable they both
+touch collides with a probability set by how each side derives its key
+(read × read never conflicts; every other combination needs at least one
+write):
+
+| Key derivation pair | P(same slot) | Intuition |
 |---|---|---|
-| write to a `FIXED` slot (plain state variable) | −25 | HIGH |
-| write to a `FIXED_KEY` slot (constant-key mapping entry) | −15 | HIGH |
-| read of a `FIXED` slot that is written on the hot path | −8 | MEDIUM |
-| write to a `PER_PARAM` slot (parameter-keyed mapping) | −4 | LOW |
-| write to a `PER_SENDER` slot (msg.sender-keyed mapping) | −1 | info |
+| shared slot × shared slot (plain variable or constant-key mapping) | **1** | same slot by construction |
+| parameter × parameter | **κ = 5%** | two calls pass the same key (same pool, same id…) |
+| parameter × constant | **κ = 5%** | a parameter happens to equal the hot constant |
+| parameter × `msg.sender` | **χ = 2%** | a parameter equals the other caller's address |
+| `msg.sender` × `msg.sender` | **ε = 0.5%** | the same account lands twice in one block |
 
-Contract score = weighted mean over those functions, with admin-gated
-functions (modifier name matching `only*/admin/auth/...`) weighted ×0.25 and
-one-shot initializers excluded.
+Per-slot probabilities combine as independent events, `1 − Π(1 − p)`, which
+gives **saturation** for free: one global counter already makes two calls
+conflict for certain — a second one cannot make it worse. (An additive
+penalty system, which ParaScan v0.2 used, punishes the same serialization
+three times.)
 
-The penalty weights are judgment calls (they encode "a shared write is
-roughly six times worse than a parameter-keyed write"); the *detection* of
-each access and its scope is not.
+Two scores are derived:
+
+- **Function score** = `100 × (1 − P(conflict with itself))` — can this
+  function scale against itself under spike load (mint rush, airdrop)?
+  A function that writes any plain shared variable scores **0**: the model's
+  literal claim is *two concurrent calls of it conflict with probability 1*.
+- **Contract score** = the traffic-weighted mix over all function pairs.
+  The default mix is uniform with admin-gated functions (modifier name
+  matching `only*/admin/auth/...`) weighted ×0.25, and one-shot initializers
+  excluded. Known consequence, stated on every leaderboard: a contract with
+  many clean functions dilutes its one serialized hot function — the
+  worst-hot-function figure is the honest headline until measured traffic
+  weights (real per-function call shares) replace the uniform assumption.
+
+Scores are **floored**, not rounded: 100 means *provably zero contention*,
+never "rounds up to 100". Each report also states the raw conflict
+probability and an estimated number of usable parallel lanes (out of 16),
+`≈ min(16, 1/P)`.
+
+κ, χ and ε are heuristic defaults, and they are the model's judgment calls;
+the *detection* of each access and its scope is not. Calibrating them
+against Engine 2's measured mainnet contention is the next milestone —
+the goal is to publish the correlation between predicted and observed
+contention rather than ask anyone to trust the defaults.
 
 ## Measured speedup (dynamic)
 

@@ -69,11 +69,17 @@ slot), and struct/mapping access chains.
 Mapping keys are classified by walking the key expression: `msg.sender` beats
 function parameters beats constants.
 
-**Scoring.** Each state-changing function starts at 100 and loses points per
-distinct contended slot (see [METHODOLOGY.md](METHODOLOGY.md) for the exact
-penalty table). Admin-gated functions (`onlyOwner` & co) are down-weighted
-×0.25; one-shot `initialize` functions behind proxies are excluded entirely —
-they never run on the hot path.
+**Scoring (v0.3, probabilistic).** The score is `100 × P(two concurrent
+calls do NOT conflict)`: every pair of state-changing functions gets a
+conflict probability from the variables they share (a shared slot collides
+for certain, parameter keys with probability κ, sender keys with ε —
+combined as independent events, so penalties saturate instead of adding
+up). Function scores are self-vs-self (spike load); the contract score is
+the traffic-weighted mix (see [METHODOLOGY.md](METHODOLOGY.md) for the
+model and constants). Admin-gated functions (`onlyOwner` & co) weigh ×0.25;
+one-shot `initialize` functions behind proxies are excluded entirely — they
+never run on the hot path. Reports also state the conflict probability and
+an estimate of usable parallel lanes out of 16.
 
 **Fixes.** Every hotspot is matched to one of five anti-pattern families
 (global counter, accumulator, last-value, array push, constant key), each with

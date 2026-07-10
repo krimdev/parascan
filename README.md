@@ -43,11 +43,11 @@ Paste a **mainnet address** or **raw Solidity** at [parascan.dev](https://parasc
 
 | | |
 |---|---|
-| 🎯 **Parallelizability score** | 0–100, per contract and per function |
+| 🎯 **Parallelizability score** | the probability (×100) that two concurrent calls don't conflict — per contract and per function, with an estimate of usable parallel lanes out of 16 |
 | 🔥 **Hotspots** | the exact variable, its storage slot, who writes/reads it, severity |
 | 🛠 **The fix** | before/after refactor using *your* variable names, per detected pattern |
 | ✨ **AI fix** | one click: an LLM rewrites your actual code to remove the contention |
-| 🔧 **Fix simulator** | edit the contract and re-score in place to prove the gain — *53 → 94* |
+| 🔧 **Fix simulator** | edit the contract and re-score in place to prove the gain — *55 → 94* |
 | 📡 **Live network monitor** | contention sampled from mainnet every 30s, a real-time chart, the hottest contracts right now |
 | 🏷 **Named live contention** | for a verified contract, the storage slots actually colliding on-chain mapped back to their **variable names** (`s_orderIdCounter`, `balances[0x…]`, `positions[id].amount`) |
 | 🏆 **Contention leaderboard** | the worst contention offenders on Monad over the last 24h, accumulated continuously — historical data no one else has |
@@ -55,16 +55,23 @@ Paste a **mainnet address** or **raw Solidity** at [parascan.dev](https://parasc
 
 ## Real mainnet results
 
-Measured July 2026 on Monad mainnet (chain 143), reproducible on
-[parascan.dev](https://parascan.dev):
+Measured July 2026 on Monad mainnet (chain 143) with the v0.3 probabilistic
+scoring, reproducible on [parascan.dev](https://parascan.dev). A function at
+**0** is the model's literal claim: *two concurrent calls of it conflict
+with probability 1* — under load it runs on one lane out of sixteen.
 
-| Contract | Score | Hot-path weak point |
-|---|---|---|
-| WMON | **98** | none — naturally parallel |
-| Uniswap V3 SwapRouter02 | **98** | `amountInCached` written on exact-output swaps |
-| Uniswap V3 PositionManager | **95** | `mint()` **16/100** — `_nextId++` / `_nextPoolId++` serialize every position mint |
-| Uniswap V3 Factory | **78** | `createPool()` writes a shared struct |
-| aPriori aprMON | **74** | `deposit()` 59 — shared `totalPendingDeposit`; `requestRedeem()` 24 — global `nextRequestId++` |
+| Contract | Score | Worst hot function | Weak point |
+|---|---|---|---|
+| Uniswap V3 SwapRouter02 | **99** | swap callback **0** | `amountInCached` written on exact-output swaps |
+| WMON | **98** | `transfer` 94 | none — naturally parallel |
+| Uniswap V3 PositionManager | **98** | `mint()` **0** | `_nextId++` / `_nextPoolId++` serialize every position mint |
+| aPriori aprMON | **86** | `deposit()` **0** | shared `totalPendingDeposit` accumulator; `requestRedeem()` also 0 (`nextRequestId++`) |
+| Uniswap V3 Factory | **53** | `createPool()` **0** | shared `parameters` struct written on every pool creation |
+
+(The contract column mixes all functions under a uniform traffic
+assumption, so many clean functions can dilute one serialized hot function
+— PositionManager averages 98 while `mint()` is 0. The worst-hot-function
+column is the honest headline; traffic-weighted scores are on the roadmap.)
 
 And from tracing live blocks: the **average achievable parallel speedup on
 current mainnet blocks is ~x4** — the rest is lost to storage contention.
@@ -115,8 +122,8 @@ before rush hour happens.
 **Is a bad score always a bug?** No. Some patterns (like sequential NFT ids)
 are product decisions. ParaScan makes the cost visible; the tradeoff is yours.
 
-**→ More: [FAQ.md](FAQ.md)** — Uniswap at 16/100, the ~x4 measurement, what
-happens to pasted code, what ParaScan misses, and more.
+**→ More: [FAQ.md](FAQ.md)** — Uniswap's `mint()` at 0/100, the ~x4
+measurement, what happens to pasted code, what ParaScan misses, and more.
 
 ## Links
 

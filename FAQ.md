@@ -20,14 +20,16 @@ like everywhere else. What runs in parallel is *different transactions of the
 same block* (from different users). That's why contention between
 transactions, not the speed of one transaction, is what ParaScan analyzes.
 
-### You gave Uniswap's mint() 16/100. Are you saying Uniswap is broken?
+### You gave Uniswap's mint() 0/100. Are you saying Uniswap is broken?
 
 No. `mint()` works perfectly — it increments two global counters
 (`_nextId++`, `_nextPoolId++`) because sequential NFT ids were a fine design
 on Ethereum, where everything runs serially anyway. On a parallel EVM the
-same code means concurrent mints re-execute one by one. It's not a bug and
-Uniswap's engineers aren't careless: **parallelizability wasn't a criterion
-when that code was written.** That's the entire point of the tool.
+same code means concurrent mints re-execute one by one — and 0/100 is
+exactly that statement: *two concurrent calls conflict with probability 1*,
+no more, no less. It's not a bug and Uniswap's engineers aren't careless:
+**parallelizability wasn't a criterion when that code was written.** That's
+the entire point of the tool.
 
 ### A low score = I must fix it?
 
@@ -40,10 +42,12 @@ ParaScan makes the *cost* visible — how much parallelism a choice throws away
 
 Static analysis of the verified source: every storage read/write of every
 externally reachable function is traced (inheritance, internal calls,
-modifiers, proxies included) and classified by who can collide on it. Each
-function starts at 100 and loses points per contended slot. The exact penalty
-table, the weighting, and every known limitation are in
-[METHODOLOGY.md](METHODOLOGY.md).
+modifiers, proxies included) and classified by who can collide on it. The
+score is then a probability, not a point tally: `100 × P(two concurrent
+calls don't conflict)`. A shared slot collides for certain, a
+parameter-keyed slot with ~5% probability, a `msg.sender`-keyed slot with
+~0.5% — combined as independent events. The exact model, its constants,
+and every known limitation are in [METHODOLOGY.md](METHODOLOGY.md).
 
 ### Where does the "~x4 average speedup" figure come from?
 
