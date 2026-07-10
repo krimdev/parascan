@@ -116,7 +116,8 @@ Honest list: storage accesses done in inline assembly (Yul `sstore`/`sload`),
 conflicts through external cross-contract calls, runtime key collisions on
 parameter-keyed mappings (everyone hitting the same hot pool), and packed
 struct members are treated at variable granularity. All documented in
-[METHODOLOGY.md](METHODOLOGY.md), all on the roadmap.
+[METHODOLOGY.md](METHODOLOGY.md), all on the
+[roadmap](README.md#roadmap).
 
 ### How is this different from Slither or a gas profiler?
 

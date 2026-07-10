@@ -105,6 +105,37 @@ from transaction calldata — to the exact variable in your source. When a
 verified contract is contended, ParaScan can say *"`s_orderIdCounter` caused
 these conflicts"* instead of *"slot 0x…"*.
 
+## Roadmap
+
+Shipped so far — each item is live on [parascan.dev](https://parascan.dev):
+
+- ✅ Static engine: score, hotspots, per-function breakdown (v0.1)
+- ✅ Scan deployed contracts by address — Sourcify + exact compiler version, EIP-1967/beacon proxies (v0.2)
+- ✅ Engine 2: measured contention from real mainnet blocks (`debug_traceBlockByNumber`)
+- ✅ MonadScan/Etherscan verified-source fallback
+- ✅ Pattern fixes with real variable names + AI-personalized refactor
+- ✅ 24/7 contention collector, live chart, 24h contention leaderboard
+- ✅ Engine 1 × Engine 2 fusion: live conflicting slots named back to source variables
+- ✅ Fix simulator: edit, re-score, prove the gain
+- ✅ CI gate ([ci/](ci/))
+- ✅ v0.3 probabilistic scoring: score = P(two concurrent calls don't conflict)
+
+Next, in order:
+
+1. **Traffic-weighted contract scores** — weight each function by its real
+   call share (4-byte selectors from recent blocks) instead of a uniform
+   mix, so a serialized hot function can no longer hide behind many clean
+   ones (PositionManager 98 vs `mint()` 0).
+2. **Key-collision constants by key type** — an `address`-keyed mapping
+   collides far less than a pool-id-keyed one; κ should reflect that.
+3. **Calibrate κ/χ/ε against measured mainnet contention** — Engine 2 sees
+   real key collisions block by block; replace guessed constants with
+   observed rates and publish the predicted-vs-measured correlation.
+4. **Close the static blind spots** — inline-assembly storage accesses,
+   cross-contract calls, packed-slot granularity (see
+   [METHODOLOGY.md](METHODOLOGY.md) limitations).
+5. **Foundry plugin** — `forge parascan`, scores in the local dev loop.
+
 ## FAQ
 
 **Is it free?** Yes. Scanning is free and requires no signup.
