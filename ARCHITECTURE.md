@@ -100,6 +100,30 @@ dependency DAG gives, per block:
 - the **achievable speedup** = transactions ÷ depth,
 - the most contended contracts and slots, aggregated across blocks.
 
+A background collector runs this sampling every 30s, independent of visitors,
+appending each data point to dated JSON in a persistent volume — so the
+contention history accumulates continuously and drives a live time-series
+chart.
+
+## Naming the slots — Engine 1 × Engine 2
+
+Engine 2 sees raw 32-byte storage slots colliding on-chain. For a verified
+contract, ParaScan maps them back to source-level variable names:
+
+- **Plain state variables** — the slot is the declared slot number (direct).
+- **Dynamic arrays** — element `i` at `keccak256(baseSlot) + i·elemSlots`.
+- **Mappings** — the value for key `k` at `keccak256(pad(k) . pad(baseSlot))`.
+  The hash isn't reversible, so keys are **harvested forward**: every 32-byte
+  word of the calldata of transactions hitting the contract becomes a candidate
+  key (covering address, uint and bytes32 keys alike), plus tx senders and
+  small ids. Mapping-to-struct values are resolved to the member name, and
+  two-level nested mappings are handled.
+
+Whatever still can't be attributed (e.g. a mapping key set in an older block,
+outside the traced window) stays honestly **unresolved** rather than guessed.
+The result: *"`s_orderIdCounter` caused these conflicts"*, proven live on a
+mainnet orderbook.
+
 ## Serving infrastructure
 
 - Node.js service (Express) exposing the scan, live-blocks and AI-fix APIs,

@@ -47,7 +47,8 @@ Paste a **mainnet address** or **raw Solidity** at [parascan.dev](https://parasc
 | 🔥 **Hotspots** | the exact variable, its storage slot, who writes/reads it, severity |
 | 🛠 **The fix** | before/after refactor using *your* variable names, per detected pattern |
 | ✨ **AI fix** | one click: an LLM rewrites your actual code to remove the contention |
-| 📡 **Live network monitor** | real contention measured on the latest Monad blocks, hottest contracts right now |
+| 📡 **Live network monitor** | contention sampled from mainnet every 30s, a real-time chart, the hottest contracts right now |
+| 🏷 **Named live contention** | for a verified contract, the storage slots actually colliding on-chain mapped back to their **variable names** (`s_orderIdCounter`, `balances[0x…]`, `positions[id].amount`) |
 
 ## Real mainnet results
 
@@ -83,10 +84,16 @@ The short version — two engines:
 2. **Engine 2 — live measurement.** Traces recent mainnet blocks
    (`debug_traceBlockByNumber`, prestateTracer), extracts each transaction's
    real read/write sets, builds the dependency graph and computes each block's
-   serial depth and achievable speedup.
+   serial depth and achievable speedup. A background collector samples the
+   chain every 30s so the contention history accumulates continuously.
 
 Engine 1 tells you *where contention is structurally guaranteed*; Engine 2
-tells you *how much is actually happening on-chain*.
+tells you *how much is actually happening on-chain*. **Fused**, they name it:
+the raw slots Engine 2 sees colliding on mainnet are mapped back — through
+the storage layout, keccak-derived mapping/array slots and keys harvested
+from transaction calldata — to the exact variable in your source. When a
+verified contract is contended, ParaScan can say *"`s_orderIdCounter` caused
+these conflicts"* instead of *"slot 0x…"*.
 
 ## FAQ
 
