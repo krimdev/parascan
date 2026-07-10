@@ -25,10 +25,15 @@ write):
 | Key derivation pair | P(same slot) | Intuition |
 |---|---|---|
 | shared slot × shared slot (plain variable or constant-key mapping) | **1** | same slot by construction |
-| parameter × parameter | **κ = 5%** | two calls pass the same key (same pool, same id…) |
-| parameter × constant | **κ = 5%** | a parameter happens to equal the hot constant |
+| parameter × parameter, numeric/bytes id key | **κ_id = 10%** | everyone hits the same hot pool / order id |
+| parameter × parameter, address-typed key | **κ_addr = 2%** | wallets and token addresses are spread out |
+| parameter × constant | **κ** (by key type) | a parameter happens to equal the hot constant |
 | parameter × `msg.sender` | **χ = 2%** | a parameter equals the other caller's address |
 | `msg.sender` × `msg.sender` | **ε = 0.5%** | the same account lands twice in one block |
+
+κ depends on the mapping's key **type**, read from the AST: numeric ids
+concentrate concurrent traffic on a few hot values; address keys behave
+like senders.
 
 Per-slot probabilities combine as independent events, `1 − Π(1 − p)`, which
 gives **saturation** for free: one global counter already makes two calls
@@ -63,11 +68,36 @@ never "rounds up to 100". Each report also states the raw conflict
 probability and an estimated number of usable parallel lanes (out of 16),
 `≈ min(16, 1/P)`.
 
-κ, χ and ε are heuristic defaults, and they are the model's judgment calls;
-the *detection* of each access and its scope is not. Calibrating them
-against Engine 2's measured mainnet contention is the next milestone —
-the goal is to publish the correlation between predicted and observed
-contention rather than ask anyone to trust the defaults.
+κ, χ and ε are priors, and they are the model's judgment calls; the
+*detection* of each access and its scope is not.
+
+## Calibration against measured mainnet behavior
+
+The constants are not asked to be trusted — a calibration harness traces
+real mainnet blocks and measures them:
+
+- **ε** — among transaction pairs hitting the same contract in one block,
+  the fraction sharing a sender. Measurable on every block, large sample.
+- **κ_addr / κ_id** — among pairs of transactions that both write entries
+  of the *same verified mapping* in one block, the fraction hitting the
+  *same entry*. Written slots are attributed to their mapping through the
+  storage layout and keys harvested from transaction calldata.
+- **Predicted vs measured** — per verified contract, the model's
+  traffic-weighted conflict probability against the observed rate of
+  conflicting pairs; rank correlation is reported when at least three
+  verified contracts carry traffic.
+
+One methodological point the first runs surfaced: **same-sender pairs are
+excluded** from measured conflict rates. Two transactions from one account
+carry sequential nonces and serialize at the protocol level no matter how
+the contract lays out its storage — the model prices *avoidable*
+contention only. (First run, July 2026: an oracle adapter's raw 41%
+conflict rate turned out to be entirely its own operator posting updates
+in bursts — zero avoidable contention, which matches the model's
+prediction.) Current mainnet traffic is bot-dominated and largely
+unverified, so the κ writer-pair sample is still thin; the harness prints
+its sample sizes and flags thin data instead of updating constants on
+noise.
 
 ## Measured speedup (dynamic)
 

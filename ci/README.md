@@ -44,7 +44,7 @@ Output on a failing PR:
 ```
 contract                                       score
 --------                                       -----
-GoodToken                                     94/100
+GoodToken                                     95/100
 BadToken                                      55/100
 
 FAIL — one or more contracts below 60/100 (or errored)

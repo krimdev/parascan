@@ -44,10 +44,12 @@ Static analysis of the verified source: every storage read/write of every
 externally reachable function is traced (inheritance, internal calls,
 modifiers, proxies included) and classified by who can collide on it. The
 score is then a probability, not a point tally: `100 × P(two concurrent
-calls don't conflict)`. A shared slot collides for certain, a
-parameter-keyed slot with ~5% probability, a `msg.sender`-keyed slot with
-~0.5% — combined as independent events. The exact model, its constants,
-and every known limitation are in [METHODOLOGY.md](METHODOLOGY.md).
+calls don't conflict)`. A shared slot collides for certain; a
+parameter-keyed slot with ~10% probability for numeric ids (hot pools)
+or ~2% for address keys (spread-out wallets); a `msg.sender`-keyed slot
+with ~0.5% — combined as independent events, and calibrated against
+measured mainnet behavior. The exact model, its constants, and every
+known limitation are in [METHODOLOGY.md](METHODOLOGY.md).
 
 ### Where does the "~x4 average speedup" figure come from?
 

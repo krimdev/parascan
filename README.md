@@ -127,18 +127,21 @@ Shipped so far — each item is live on [parascan.dev](https://parascan.dev):
   on-chain call share (4-byte selectors of recent transactions, with
   internal-call tracing for router-driven contracts; uniform fallback
   below 10 observed calls)
+- ✅ v0.5 κ split by mapping key type (numeric ids 10% vs address keys 2%)
+  + calibration harness: ε, κ and predicted-vs-measured conflict rates
+  traced from real mainnet blocks (see
+  [METHODOLOGY.md](METHODOLOGY.md#calibration-against-measured-mainnet-behavior))
 
 Next, in order:
 
-1. **Key-collision constants by key type** — an `address`-keyed mapping
-   collides far less than a pool-id-keyed one; κ should reflect that.
-2. **Calibrate κ/χ/ε against measured mainnet contention** — Engine 2 sees
-   real key collisions block by block; replace guessed constants with
-   observed rates and publish the predicted-vs-measured correlation.
-3. **Close the static blind spots** — inline-assembly storage accesses,
+1. **Publish the predicted-vs-measured correlation** once ≥3 verified
+   contracts carry organic traffic — the harness already computes it;
+   today's mainnet is bot-dominated and largely unverified.
+2. **Close the static blind spots** — inline-assembly storage accesses
+   (oracle-style adapters write storage from Yul, invisible to the AST),
    cross-contract calls, packed-slot granularity (see
    [METHODOLOGY.md](METHODOLOGY.md) limitations).
-4. **Foundry plugin** — `forge parascan`, scores in the local dev loop.
+3. **Foundry plugin** — `forge parascan`, scores in the local dev loop.
 
 ## FAQ
 
