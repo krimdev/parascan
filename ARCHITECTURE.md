@@ -75,8 +75,11 @@ conflict probability from the variables they share (a shared slot collides
 for certain, parameter keys with probability κ, sender keys with ε —
 combined as independent events, so penalties saturate instead of adding
 up). Function scores are self-vs-self (spike load); the contract score is
-the traffic-weighted mix (see [METHODOLOGY.md](METHODOLOGY.md) for the
-model and constants). Admin-gated functions (`onlyOwner` & co) weigh ×0.25;
+the traffic-weighted mix — measured on chain for deployed contracts
+(4-byte selectors of recent transactions, escalating to `callTracer`
+internal-call tracing for router-driven contracts), uniform below 10
+observed calls (see [METHODOLOGY.md](METHODOLOGY.md) for the model and
+constants). Admin-gated functions (`onlyOwner` & co) weigh ×0.25;
 one-shot `initialize` functions behind proxies are excluded entirely — they
 never run on the hot path. Reports also state the conflict probability and
 an estimate of usable parallel lanes out of 16.

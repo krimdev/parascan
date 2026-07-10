@@ -68,10 +68,14 @@ with probability 1* — under load it runs on one lane out of sixteen.
 | aPriori aprMON | **86** | `deposit()` **0** | shared `totalPendingDeposit` accumulator; `requestRedeem()` also 0 (`nextRequestId++`) |
 | Uniswap V3 Factory | **53** | `createPool()` **0** | shared `parameters` struct written on every pool creation |
 
-(The contract column mixes all functions under a uniform traffic
-assumption, so many clean functions can dilute one serialized hot function
-— PositionManager averages 98 while `mint()` is 0. The worst-hot-function
-column is the honest headline; traffic-weighted scores are on the roadmap.)
+(The contract column mixes all functions weighted by traffic. Since v0.4
+the mix is **measured on chain** — real call shares from the 4-byte
+selectors of recent transactions, tracing internal calls when a contract
+is mostly reached through routers. When a contract shows fewer than 10
+recent calls, the uniform assumption is kept and the report says so; many
+clean functions can then dilute one serialized hot function —
+PositionManager averages 98 while `mint()` is 0 — which is why the
+worst-hot-function column stays the honest headline.)
 
 And from tracing live blocks: the **average achievable parallel speedup on
 current mainnet blocks is ~x4** — the rest is lost to storage contention.
@@ -119,22 +123,22 @@ Shipped so far — each item is live on [parascan.dev](https://parascan.dev):
 - ✅ Fix simulator: edit, re-score, prove the gain
 - ✅ CI gate ([ci/](ci/))
 - ✅ v0.3 probabilistic scoring: score = P(two concurrent calls don't conflict)
+- ✅ v0.4 traffic-weighted contract scores — each function weighs its real
+  on-chain call share (4-byte selectors of recent transactions, with
+  internal-call tracing for router-driven contracts; uniform fallback
+  below 10 observed calls)
 
 Next, in order:
 
-1. **Traffic-weighted contract scores** — weight each function by its real
-   call share (4-byte selectors from recent blocks) instead of a uniform
-   mix, so a serialized hot function can no longer hide behind many clean
-   ones (PositionManager 98 vs `mint()` 0).
-2. **Key-collision constants by key type** — an `address`-keyed mapping
+1. **Key-collision constants by key type** — an `address`-keyed mapping
    collides far less than a pool-id-keyed one; κ should reflect that.
-3. **Calibrate κ/χ/ε against measured mainnet contention** — Engine 2 sees
+2. **Calibrate κ/χ/ε against measured mainnet contention** — Engine 2 sees
    real key collisions block by block; replace guessed constants with
    observed rates and publish the predicted-vs-measured correlation.
-4. **Close the static blind spots** — inline-assembly storage accesses,
+3. **Close the static blind spots** — inline-assembly storage accesses,
    cross-contract calls, packed-slot granularity (see
    [METHODOLOGY.md](METHODOLOGY.md) limitations).
-5. **Foundry plugin** — `forge parascan`, scores in the local dev loop.
+4. **Foundry plugin** — `forge parascan`, scores in the local dev loop.
 
 ## FAQ
 

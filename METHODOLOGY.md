@@ -43,12 +43,20 @@ Two scores are derived:
   A function that writes any plain shared variable scores **0**: the model's
   literal claim is *two concurrent calls of it conflict with probability 1*.
 - **Contract score** = the traffic-weighted mix over all function pairs.
-  The default mix is uniform with admin-gated functions (modifier name
-  matching `only*/admin/auth/...`) weighted ×0.25, and one-shot initializers
-  excluded. Known consequence, stated on every leaderboard: a contract with
-  many clean functions dilutes its one serialized hot function — the
-  worst-hot-function figure is the honest headline until measured traffic
-  weights (real per-function call shares) replace the uniform assumption.
+  For deployed contracts the mix is **measured on chain** (v0.4): the
+  4-byte selectors of recent transactions to the scanned address are
+  counted and each function weighs its real call share. Contracts that are
+  mostly called inside router transactions (invisible in top-level
+  calldata) escalate to `debug_traceBlockByNumber` with `callTracer`,
+  which counts internal calls too; `STATICCALL`s are excluded since view
+  traffic writes nothing. Rarely-sampled functions keep a small share
+  (Laplace smoothing). Below 10 observed calls the sample is noise, so the
+  mix falls back to the uniform assumption — admin-gated functions
+  (modifier name matching `only*/admin/auth/...`) weighted ×0.25, one-shot
+  initializers excluded — and the report states which mix was used. Under
+  the uniform fallback a contract with many clean functions dilutes its
+  one serialized hot function: the worst-hot-function figure stays the
+  honest headline there.
 
 Scores are **floored**, not rounded: 100 means *provably zero contention*,
 never "rounds up to 100". Each report also states the raw conflict
