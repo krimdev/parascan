@@ -61,6 +61,17 @@ length = the block's achievable speedup. It's a structural upper bound
 details and caveats in [METHODOLOGY.md](METHODOLOGY.md). Anyone can reproduce
 it: the RPC is public.
 
+### Is the saturation simulation realistic?
+
+Its mechanics follow Monad's documented behavior (optimistic pass →
+rollback → serial re-execution), both contracts perform identically at
+low demand, and the animation states its own scale on the page (each
+animated tx ≈ 500 real ones). The ~600 TPS floor is a proportional
+model (10,000 ÷ 16 spec'd cores), not an official figure — the ÷16
+ceiling logic is just a data-dependency chain running on one lane.
+Every anticipated objection is answered in
+[SIMULATION.md](SIMULATION.md).
+
 ### Isn't Monad's scheduler smart enough to make conflicts cheap?
 
 Monad's optimistic execution is excellent engineering, and re-execution is

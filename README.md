@@ -52,6 +52,7 @@ Paste a **mainnet address** or **raw Solidity** at [parascan.dev](https://parasc
 | 🏷 **Named live contention** | for a verified contract, the storage slots actually colliding on-chain mapped back to their **variable names** (`s_orderIdCounter`, `balances[0x…]`, `positions[id].amount`) |
 | 🏆 **Contention leaderboard** | the worst contention offenders on Monad over the last 24h, accumulated continuously — historical data no one else has |
 | ⚙️ **CI gate** | fail a pull request when a contract scores below your threshold — [ci/](ci/) |
+| 🎬 **Saturation simulation** | the same rush hits a serial and a parallel contract side by side — watch ~10,000 TPS become ~600 ([how it works](SIMULATION.md)) |
 
 ## Real mainnet results
 
@@ -169,4 +170,5 @@ measurement, what happens to pasted code, what ParaScan misses, and more.
 - ⚙️ CI gate: [ci/](ci/)
 - 📖 Architecture: [ARCHITECTURE.md](ARCHITECTURE.md)
 - 📐 Methodology & limits: [METHODOLOGY.md](METHODOLOGY.md)
+- 🎬 Saturation simulation, explained: [SIMULATION.md](SIMULATION.md)
 - 📚 Monad docs on parallel execution: [docs.monad.xyz](https://docs.monad.xyz/monad-arch/execution/parallel-execution)
